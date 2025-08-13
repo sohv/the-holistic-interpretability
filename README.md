@@ -1,4 +1,4 @@
-# Neuron Ablation
+# The Holistic Interpretability
 
 
 
