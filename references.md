@@ -1,8 +1,6 @@
-# Neural Network Interpretability References
+# References and Further Reading
 
-This document provides relevant papers and blog posts for each notebook in this repository, organized by interpretability technique and difficulty level.
-
-## 1. Core Ablation Study (`ablation_mnist.ipynb`)
+## 1. Ablation Study (`ablation_mnist.ipynb`)
 
 ### Papers
 - **"Visualizing and Understanding Convolutional Networks"** (Zeiler & Fergus, 2014)
@@ -134,7 +132,7 @@ This document provides relevant papers and blog posts for each notebook in this 
   - Tools and techniques for understanding neural network internals
   - [Lab Website](https://baulab.info/)
 
-## Cross-Cutting Resources
+## Miscellaneous References
 
 ### General Interpretability
 - **"Interpretable Machine Learning"** (Christoph Molnar, 2020)
@@ -157,9 +155,3 @@ This document provides relevant papers and blog posts for each notebook in this 
 - **Lucent**
   - Neural network visualization library
   - [GitHub](https://github.com/greentfrapp/lucent)
-
-## Implementation Notes
-
-Each notebook in this repository implements techniques from these papers in a simplified, educational format using MNIST data. The progression from basic ablation to advanced causal tracing follows the historical development of the field and increasing sophistication of techniques.
-
-For hands-on learning, start with the basic ablation notebook and progress through the more advanced techniques as you become comfortable with the concepts and implementations.
