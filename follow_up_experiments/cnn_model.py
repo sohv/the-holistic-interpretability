@@ -13,7 +13,8 @@ class SmallCNN(nn.Module):
         self.fc2 = nn.Linear(128, 10)
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
+        # Apply pooling after both conv layers to reduce spatial size from 28->14->7
+        x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
@@ -21,7 +22,8 @@ class SmallCNN(nn.Module):
         return x
 
     def get_fc1_activations(self, x):
-        x = F.relu(self.conv1(x))
+        # Mirror the forward pass pooling to get the same activations
+        x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))

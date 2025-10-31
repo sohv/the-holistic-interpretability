@@ -18,6 +18,25 @@
 |------------|------------------|-------------------|---------|
 | Neuron Ablation (Digit 7) | 97%+ | ~85% | 12% accuracy drop when removing top 10 neurons |
 
+### Fashion-MNIST Ablation (k = 10)
+
+The table below summarizes the ablation results on Fashion-MNIST where the top-10 neurons (by average activation for each class) were ablated and compared to a random ablation baseline (mean over multiple trials).
+
+| Digit | Ablated Accuracy (top-10) | Random Ablation Mean | Drop |
+|-------:|:-------------------------:|:--------------------:|:----:|
+| 0 | 84.54% | 88.56% | 4.02% |
+| 1 | 84.96% | 88.78% | 3.82% |
+| 2 | 86.54% | 88.39% | 1.85% |
+| 3 | 84.10% | 88.53% | 4.43% |
+| 4 | 86.76% | 88.34% | 1.58% |
+| 5 | 87.69% | 88.75% | 1.06% |
+| 6 | 86.35% | 88.59% | 2.24% |
+| 7 | 86.31% | 88.46% | 2.15% |
+| 8 | 88.34% | 88.55% | 0.21% |
+| 9 | 85.26% | 88.35% | 3.09% |
+| **Mean** | **86.09%** | **88.53%** | **2.44%** |
+
+
 ### Feature Discovery
 
 | Experiment | Key Findings |

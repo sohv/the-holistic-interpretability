@@ -11,3 +11,4 @@ bash_file_creation.md
 # data
 data/
 drafts/
+__pycache__/

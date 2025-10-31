@@ -57,6 +57,40 @@ def compute_neuron_importance(model, test_loader, target_class=7, device='cpu', 
     return importance
 
 
+def compute_weight_magnitude_importance(model):
+    """Importance by input-column norm of fc2 weights."""
+    # fc2 weight shape: (out, in)
+    w = model.fc2.weight.data.cpu().numpy()
+    # magnitude per input neuron: L2 norm across output neurons
+    mags = np.linalg.norm(w, axis=0)
+    return mags
+
+
+def compute_gradient_importance(model, data_loader, target_class=7, device='cpu', max_samples=500):
+    """Compute importance by average gradient magnitude of class logit wrt fc1 activations."""
+    model.to(device)
+    model.eval()
+    grads = []
+    count = 0
+    for data, target in data_loader:
+        data, target = data.to(device), target.to(device)
+        acts = model.get_fc1_activations(data)
+        acts = acts.detach()
+        acts.requires_grad_(True)
+        out = model.fc2(acts)
+        logits = out[:, target_class]
+        # Sum logits to get scalar for backward
+        logits.sum().backward(retain_graph=False)
+        g = acts.grad.cpu().abs()
+        grads.append(g)
+        count += data.size(0)
+        if count >= max_samples:
+            break
+    grads = torch.cat(grads, dim=0)
+    importance = grads.mean(dim=0).numpy()
+    return importance
+
+
 def ablate_and_evaluate(model, test_loader, neuron_indices, device='cpu'):
     model.to(device)
     # Create a copy of model weights to restore later
@@ -88,6 +122,18 @@ def random_ablation_test(model, test_loader, k=10, trials=10, device='cpu'):
     return np.mean(results), np.std(results)
 
 
+def bootstrap_ci(values, n_boot=1000, alpha=0.05):
+    vals = np.array(values)
+    n = len(vals)
+    bs = []
+    for i in range(n_boot):
+        samp = np.random.choice(vals, size=n, replace=True)
+        bs.append(np.mean(samp))
+    lo = np.percentile(bs, 100 * (alpha/2))
+    hi = np.percentile(bs, 100 * (1 - alpha/2))
+    return np.mean(vals), lo, hi
+
+
 def main():
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     test_loader = load_data()
@@ -115,24 +161,53 @@ def main():
     print(f'Random ablation (k=10) mean acc: {rand_mean:.2f}% (+/- {rand_std:.2f}%)')
 
     # Extended experiments: per-digit ablation and k-sweep
-    ks = [1, 5, 10, 20]
+    ks = [1, 5, 10, 20, 50]
     digits = list(range(10))
     results = []
+    # Precompute weight-magnitude importance
+    weight_importance = compute_weight_magnitude_importance(model)
+
+    # Precompute gradient importance using a subset
+    grad_importance = compute_gradient_importance(model, test_loader, device=device)
+
     for digit in digits:
-        importance = compute_neuron_importance(model, test_loader, target_class=digit, device=device)
+        # activation-based importance
+        act_importance = compute_neuron_importance(model, test_loader, target_class=digit, device=device)
         for k in ks:
-            topk = np.argsort(importance)[-k:][::-1]
-            acc_ab = ablate_and_evaluate(model, test_loader, topk, device=device)
-            rand_mean, rand_std = random_ablation_test(model, test_loader, k=k, trials=10, device=device)
-            print(f'Digit {digit}, k={k}: ablated acc={acc_ab:.2f}%, random mean={rand_mean:.2f}%')
-            results.append((digit, k, acc_ab, rand_mean, rand_std))
+            # activation top-k
+            topk_act = np.argsort(act_importance)[-k:][::-1]
+            acc_act = ablate_and_evaluate(model, test_loader, topk_act, device=device)
+
+            # weight-magnitude top-k
+            topk_w = np.argsort(weight_importance)[-k:][::-1]
+            acc_w = ablate_and_evaluate(model, test_loader, topk_w, device=device)
+
+            # gradient-saliency top-k
+            topk_g = np.argsort(grad_importance)[-k:][::-1]
+            acc_g = ablate_and_evaluate(model, test_loader, topk_g, device=device)
+
+            # random baseline (multiple trials for bootstrap)
+            random_trials = []
+            neurons = model.fc2.weight.size(1)
+            import random
+            for t in range(30):
+                idxs = random.sample(range(neurons), k)
+                random_trials.append(ablate_and_evaluate(model, test_loader, idxs, device=device))
+            rand_mean = float(np.mean(random_trials))
+            rand_std = float(np.std(random_trials))
+            rand_mean_bs, rand_lo, rand_hi = bootstrap_ci(random_trials, n_boot=500)
+
+            print(f'Digit {digit}, k={k}: act={acc_act:.2f}%, weight={acc_w:.2f}%, grad={acc_g:.2f}%, rand={rand_mean:.2f}%')
+            results.append((digit, k, 'activation', acc_act, rand_mean, rand_std, rand_lo, rand_hi))
+            results.append((digit, k, 'weight', acc_w, rand_mean, rand_std, rand_lo, rand_hi))
+            results.append((digit, k, 'gradient', acc_g, rand_mean, rand_std, rand_lo, rand_hi))
 
     # Save results to CSV
     os.makedirs('results', exist_ok=True)
     csv_path = os.path.join('results', 'ablation_sweep.csv')
     with open(csv_path, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['digit', 'k', 'ablated_acc', 'random_mean_acc', 'random_std'])
+        writer.writerow(['digit', 'k', 'method', 'ablated_acc', 'random_mean_acc', 'random_std', 'random_ci_lo', 'random_ci_hi'])
         for row in results:
             writer.writerow(row)
     print(f'Extended ablation sweep results saved to {csv_path}')
