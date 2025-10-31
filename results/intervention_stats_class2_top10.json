@@ -1,0 +1,23 @@
+{
+  "n_total_rows": 9000,
+  "n_target": 8095,
+  "n_non_target": 905,
+  "target_mean_delta": 0.034587609307066926,
+  "target_95ci_mean": [
+    0.033141064260021225,
+    0.03609105693865537
+  ],
+  "non_target_mean_delta": 0.026632798401276577,
+  "non_target_95ci_mean": [
+    0.022860416072669375,
+    0.030555730581546578
+  ],
+  "target_sd": 0.068389054297824,
+  "non_target_sd": 0.0586087204710689,
+  "cohens_d_one_sample_target": 0.5057477349583328,
+  "cohens_d_one_sample_non_target": 0.4544169909736105,
+  "cohens_d_between_groups": 0.11790049258370258,
+  "perm_p_group_diff": 0.0002999850007499625,
+  "perm_p_target_mean_positive": 4.999750012499375e-05,
+  "observed_mean_diff": 0.007954810905790349
+}

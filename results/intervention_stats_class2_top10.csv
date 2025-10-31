@@ -1,0 +1,14 @@
+metric,group,value
+mean, target, 0.034587609307066926
+mean_95ci_lo, target, 0.033141064260021225
+mean_95ci_hi, target, 0.03609105693865537
+mean, non_target, 0.026632798401276577
+mean_95ci_lo, non_target, 0.022860416072669375
+mean_95ci_hi, non_target, 0.030555730581546578
+sd, target, 0.068389054297824
+sd, non_target, 0.0586087204710689
+cohens_d_one_sample, target, 0.5057477349583328
+cohens_d_one_sample, non_target, 0.4544169909736105
+cohens_d_between, target_vs_non_target, 0.11790049258370258
+perm_p, group_diff, 0.0002999850007499625
+perm_p, target_mean_positive, 4.999750012499375e-05
